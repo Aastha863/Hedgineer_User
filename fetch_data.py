@@ -110,68 +110,68 @@ else:
     print(f"Error: {response.status_code} - {response.text}")
 
 # Extract the company symbols
-list_companies = df['T'].to_list()
+tickers = df['T'].to_list()
 
-json_file_path = "service_account.json"
+# json_file_path = "service_account.json"
 
-# Define the scope
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+# # Define the scope
+# scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
-# Authenticate using the JSON file
-credentials = ServiceAccountCredentials.from_json_keyfile_name(json_file_path, scope)
-gc = gspread.authorize(credentials)
+# # Authenticate using the JSON file
+# credentials = ServiceAccountCredentials.from_json_keyfile_name(json_file_path, scope)
+# gc = gspread.authorize(credentials)
 
-# Open the Google Sheet by URL
-sheet_url = "https://docs.google.com/spreadsheets/d/1mOK1BuZyD3n24ilCllSFMkLo5crJbUjXiCrP53_OTno/edit?gid=0"
-spreadsheet = gc.open_by_url(sheet_url)
+# # Open the Google Sheet by URL
+# sheet_url = "https://docs.google.com/spreadsheets/d/1mOK1BuZyD3n24ilCllSFMkLo5crJbUjXiCrP53_OTno/edit?gid=0"
+# spreadsheet = gc.open_by_url(sheet_url)
 
-# Select the first worksheet
-worksheet = spreadsheet.get_worksheet(0)
+# # Select the first worksheet
+# worksheet = spreadsheet.get_worksheet(0)
 
-# Prepare data with formulas for the market cap
-data_to_write = [[symbol, f'=GOOGLEFINANCE("NASDAQ:{symbol}", "marketcap")'] for symbol in list_companies]
+# # Prepare data with formulas for the market cap
+# data_to_write = [[symbol, f'=GOOGLEFINANCE("NASDAQ:{symbol}", "marketcap")'] for symbol in list_companies]
 
-# Add column headers
-data_to_write.insert(0, ["Symbol", "Market Cap"])
+# # Add column headers
+# data_to_write.insert(0, ["Symbol", "Market Cap"])
 
-# Update the worksheet starting from cell A1
-worksheet.update("A1", data_to_write, value_input_option='USER_ENTERED')  # Ensures formulas are treated as formulas
+# # Update the worksheet starting from cell A1
+# worksheet.update("A1", data_to_write, value_input_option='USER_ENTERED')  # Ensures formulas are treated as formulas
 
-print("Data with formulas written successfully!")
+# print("Data with formulas written successfully!")
 
-# Open the source spreadsheet to retrieve the calculated data
-source_sheet_url = "https://docs.google.com/spreadsheets/d/1mOK1BuZyD3n24ilCllSFMkLo5crJbUjXiCrP53_OTno/edit?gid=0#gid=0"
-destination_sheet_url = "https://docs.google.com/spreadsheets/d/1mOK1BuZyD3n24ilCllSFMkLo5crJbUjXiCrP53_OTno/edit?gid=817291030#gid=817291030"
+# # Open the source spreadsheet to retrieve the calculated data
+# source_sheet_url = "https://docs.google.com/spreadsheets/d/1mOK1BuZyD3n24ilCllSFMkLo5crJbUjXiCrP53_OTno/edit?gid=0#gid=0"
+# destination_sheet_url = "https://docs.google.com/spreadsheets/d/1mOK1BuZyD3n24ilCllSFMkLo5crJbUjXiCrP53_OTno/edit?gid=817291030#gid=817291030"
 
-# Open the source spreadsheet
-source_spreadsheet = gc.open_by_url(source_sheet_url)
+# # Open the source spreadsheet
+# source_spreadsheet = gc.open_by_url(source_sheet_url)
 
-# Select the first worksheet in the source spreadsheet
-source_worksheet = source_spreadsheet.get_worksheet(0)
+# # Select the first worksheet in the source spreadsheet
+# source_worksheet = source_spreadsheet.get_worksheet(0)
 
-# Retrieve all data (evaluated values) from the source worksheet
-source_data = source_worksheet.get_all_values()
+# # Retrieve all data (evaluated values) from the source worksheet
+# source_data = source_worksheet.get_all_values()
 
-# Convert the data to a DataFrame
-df = pd.DataFrame(source_data)
+# # Convert the data to a DataFrame
+# df = pd.DataFrame(source_data)
 
-# Assign the first row as headers and remove the header row from the data
-df.columns = df.iloc[0]
-df = df[1:]
+# # Assign the first row as headers and remove the header row from the data
+# df.columns = df.iloc[0]
+# df = df[1:]
 
-# Replace '#NA' values with NaN and ensure there are no unwanted string representations
-df.replace({'#NA': np.nan, '#N/A': np.nan, 'N/A': np.nan}, inplace=True)
+# # Replace '#NA' values with NaN and ensure there are no unwanted string representations
+# df.replace({'#NA': np.nan, '#N/A': np.nan, 'N/A': np.nan}, inplace=True)
 
-# Remove rows with any NaN (missing) values
-df_cleaned = df.dropna()
+# # Remove rows with any NaN (missing) values
+# df_cleaned = df.dropna()
 
-df['Market Cap'] = df['Market Cap'].astype(float)
+# df['Market Cap'] = df['Market Cap'].astype(float)
 
-# Sort by market_Cap in descending order
-df_sorted = df.sort_values(by='Market Cap', ascending=False)
-df_sorted.to_csv('final_data.csv', index=False)
-# Get the top 1000 symbols
-tickers = df_sorted.head(200)['Symbol'].tolist()
+# # Sort by market_Cap in descending order
+# df_sorted = df.sort_values(by='Market Cap', ascending=False)
+# df_sorted.to_csv('final_data.csv', index=False)
+# # Get the top 1000 symbols
+# tickers = df_sorted.head(200)['Symbol'].tolist()
 
 
 API_BASE_URL_MARKET_CAP = "https://api.polygon.io/v3/reference/tickers/"
